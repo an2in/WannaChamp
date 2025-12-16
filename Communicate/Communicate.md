@@ -9,7 +9,7 @@ capture.pcapng  evidence.ad1
 ```
 So I went on checking the `evidence.ad1` file, and it did not take me so long to find out a malicious file in the victim's system.
 
-![Helper.exe](/img/helper.png)
+![Helper.exe](img/helper.png)
 
 I extracted it, and checked for the file type.
 
@@ -20,19 +20,19 @@ Helper.exe: PE32 executable (console) Intel 80386 Mono/.Net assembly, for MS Win
 
 So I used `dnSpy`, a `.NET` debugger to read the file. 
 
-![overview_dec](/img/helper_overview.png)
+![overview_dec](img/helper_overview.png)
 
 The app is basically a decryption component of a ransomware program. It starts by printing some ASCII art of a skull, prompting the user the send the money to get the key for decrypting their encrypted files. 
 
-![testrun](/img/testrun_helper.png)
+![testrun](img/testrun_helper.png)
 
 Once the key is provided, the program initiates a recovery process that scans the user's profile directory for any files ending with the specific extension .foooo. For each matching file, it reads the encrypted content, attempts to decrypt it using AES with the user-supplied key, and writes the restored data back to the original filename without the malicious `.foooo` extension.
 
-![checkfo](/img/checkfoo.png)
+![checkfo](img/checkfoo.png)
 
 I then checking the file further to check for the key, maybe i can decrypt the file:DDD. Sadly, the key is randomly generated.
 
-![randkey](/img/randkeygen.png)
+![randkey](img/randkeygen.png)
 
 So the next phase of the problem should be to find the key. I was thinking the key is hidden in the `.ad1` file, so I spent a whole afternoon just to find for the key and gradually become hopeless:(((. On the second day of the contest, I tried a command to find for any `.exe` filename in the user's folder.
 
@@ -98,21 +98,21 @@ The victim used Telegram to chat with their collegues, and in the `Telegram Desk
 ```
 The default `Telegram.exe` and `unins000.exe` app of Telegram can be ignored, but the `Updater.exe` is kinda weird. My OSINT skills told me that the `Telegram.exe` handles update and `unins000.exe` responsible for the uninstallation progress. So now I went on checking that `Updater.exe` file.
 
-![update_overview](/img/update_overview.png)
+![update_overview](img/update_overview.png)
 
 Hmmm, it seems that the author intendedly make the file become hard to read :DDDDD.
 
 So this file is used to download the payload, which is the ransomware of this challenge. Specifically, this file checked if it is ran in a sandbox (anti-analysis) by finding whether the process `SbieDll.dll` is running. If yes, the app automatically turns it off. 
 
-![sandbox](/img/sandbox.png)
+![sandbox](img/sandbox.png)
 
 The malware then connect to `http://ip-api.com/line/?fields=hosting` to check whether the user's current IP is belong to a hosting (datacenter) or not. If yes, the malware shutdown itself.
 
-![check_hosting](/img/check_host.png)
+![check_hosting](img/check_host.png)
 
 The malware did not run immediately after all the previous requirements satisfied, it waits for the user to type some "hotkeys" including: `Ctrl + C, Ctrl + V, Ctrl + A`.
 
-![hotket](/img/hotkey.png)
+![hotket](img/hotkey.png)
 
 After the victim pressed any of the given keys, the malware will download a payload from `https://gist.githubusercontent.com/YoNoob841/6e84cf5e3f766ce3b420d2e4edcc6ab6/raw/57e4d9dcd9691cd6286e9552d448e413f62f8b1f/NjtvSTuePfCiiXpCDzCUiCVBifJnLu`
 
@@ -142,7 +142,7 @@ decrypt_malware_url()
 ```
 When visiting the URL, I can see the payload, which is not human-readable:D.
 
-![paaaaay](/img/payload.png)
+![paaaaay](img/payload.png)
 
 I used this script to imitate the process of downloading the paylod, decrypt it, and write the data to a `payload.exe` file.
 
@@ -200,21 +200,21 @@ if __name__ == "__main__":
 
 I used `dnSpy` to open the `payload.exe`, and wow, another not-human-friendly malware, or is it?
 
-![nonhumna](/img/non_humna_win.png)
+![nonhumna](img/non_humna_win.png)
 
 What are these strings?
 
-![?????](/img/ask_string.png)
+![?????](img/ask_string.png)
 
 Dont worry, because I am a final nonchalant boss. I noticed the line `[module: ConfusedBy("ConfuserEx v1.0.0")]`. I then OSINTing what is ConfuserEx, and I know that it is an open-source, free protector for .NET applications. So I went on googling how to defuse the payload, and I found `de4dot-cex`: https://github.com/ViRb3/de4dot-cex
 
 I downloaded it and throw the whole `payload.exe` for it to defuse. And voila, finally some human-friendly stuff. 
 
-![omg](/img/human_freidnly.png)
+![omg](img/human_freidnly.png)
 
 So techinally this .NET-based ransomware, masquerading as a legitimate "WindowsUpdate" process, begins execution by employing anti-analysis techniques within its module initializer to detect debuggers or active profiling environments, immediately terminating via `Environment.FailFast` if such tools are present to evade detection. Upon bypassing these checks, it generates a random `32-byte AES key` and traverses the user's profile directory to encrypt files using AES-CBC mode, appending the specific extension `.foooo` to the encrypted data while deleting the original files. To ensure only the attacker can decrypt the data, the malware utilizes a hybrid encryption scheme where the session AES key is encrypted using a hardcoded RSA public key and subsequently exfiltrated along with the machine name via a TCP connection to a hardcoded Command and Control (C2) server at `172.25.242.197:31245`, finally concluding the attack by dropping a ransom note (READ_ME_1.txt) demanding $3,000 in Bitcoin and extracting an embedded executable named `Helper.exe` to the desktop.
 
-![c2_server](/img/c2.png)
+![c2_server](img/c2.png)
 
 ```bash
 $ echo "MTcyLjI1LjI0Mi4xOTc=" | base64 -d
@@ -224,7 +224,7 @@ $ echo "MzEyNDU=" | base64 -d
 ```
 So now, I can link the data with the `.pcapng` file. 
 
-![key](/img/key_pcap.png)
+![key](img/key_pcap.png)
 
 There are some vulnerabilities in the encryption algorithm: Unpadded RSA with Small Public Exponent ($e=11$) và Short Message. I used this script to crack the key.
 
@@ -264,7 +264,7 @@ Wu/F6K9CnxuCS0ubNF5CEceMumb155dGnV2714cOp8g=
 ```
 Lets use the key to open the `Important_File_You_Need!!!.dat.foooo` file.
 
-![important](/img/import.png)
+![important](img/import.png)
 
 I used this script.
 
@@ -364,15 +364,15 @@ Yeahhh, the second part.
 
 And now for the first part. By checking the `Desktop` folder of the victim, we can see that they use 2 chat apps, that are Signal and Talagrem.
 
-![chatapp](/img/chatapp.png)
+![chatapp](img/chatapp.png)
 
 I have already checked talagrem, and got the second part, so now we should focus on the first one. Let go on checking the `Signal` database.
 
-![signalapp](/img/signal_sql.png)
+![signalapp](img/signal_sql.png)
 
 But here's the deal. The database is encrypted, luckily, the key to decrypt it is stored locally in the `config.json` file in the `Signal` folder. But sadly, the original key has one more encrypted layer - the Windows DPAPI (Data Protection API). 
 
-![encrypted](/img/ency.png)
+![encrypted](img/ency.png)
 
 So, we need two things to crack this password.
 
@@ -381,7 +381,7 @@ So, we need two things to crack this password.
 
 Lets find those two. I need to gather some files/folders including: `SAM`, `SYSTEM`, `Protect` and `config.json`.
 
-![ingrdients](/img/cook.png)
+![ingrdients](img/cook.png)
 
 I extracted the NTLM Hash of the user.
 
@@ -411,7 +411,7 @@ sosona:1001:aad3b435b51404eeaad3b435b51404ee:2d20d252a479f485cdf5e171d93985bf:::
 
 And I threw the hash the `https://crackstation.net/` and I found that the password is actually `qwerty`.
 
-![quay](/img/quaytay.png)
+![quay](img/quaytay.png)
 
 I extracted the MasterKey using that password (the tools I used here is dpapi.py: https://raw.githubusercontent.com/fortra/impacket/master/examples/dpapi.py).
 
@@ -466,7 +466,7 @@ ERROR: ('unpack requires a buffer of 4 bytes', "When unpacking field 'CryptAlgo 
 ```
 After some OSINT efforts, I know that the key I was trying to decrypt is protected using Chromium Security Mechanism (just like how Chrome stores our password/cookie). So I need to get the file `Local State`, which really store the key to open the Database.
 
-![local](/img/localstate.png)
+![local](img/localstate.png)
 
 I repeated the same process I did previously, and now, I got the key.
 
@@ -529,15 +529,15 @@ $ python sec.py
 ```
 Voila, I have successfully opened the database.
 
-![data_ok](/img/okdata.png)
+![data_ok](img/okdata.png)
 
 I checked the database, and found that there is one malicious file being transferred while the victim was talking to their collegues.
 
-![sala](/img/luong.png)
+![sala](img/luong.png)
 
 Base on the path, I have extracted the file.
 
-![rar](/img/rar.png)
+![rar](img/rar.png)
 
 Although this file is stored in the local folder, but it is also encrypted. They use `AES-256-CBC` to encrypt it. I now need Key and IV to decrypt it. Fortunately, those two are stored locally, right in the database.
 
@@ -576,7 +576,7 @@ OUTPUT_FILE = "salary_staistics.rar"
 decrypt_signal_attachment(INPUT_FILE, OUTPUT_FILE, TARGET_LOCAL_KEY)
 ```
 
-![virus_sala](/img/virus_sala.png)
+![virus_sala](img/virus_sala.png)
 
 I opened (in sandbox) the decrypted file and I found a suspicious base encoded string.
 
@@ -598,3 +598,4 @@ Yeahhh, we got the full flag now.
 This challenge took me three days to solve. Because I was thinking the RSA key for the first part couldn't be cracked :DDD (yeah, it is RSA, bro), I overthought it so much.
 
 Many thanks to Mr.KetSoSad for giving me a hint about checking the database of the Signal Chat App. I overlooked the app many times, thinking Signal was just a normal app (not a chat app, bruhh), until I became hopeless. Then Mr.KetSoSad appeared like God to give me a breakthrough hint that helped me solve this challenge.
+
