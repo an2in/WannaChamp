@@ -595,7 +595,8 @@ Yeahhh, we got the full flag now.
 
 **Note** 
 
-This challenge took me three days to solve. Because I was thinking the RSA key for the first part couldn't be cracked :DDD (yeah, it is RSA, bro), I overthought it so much.
+This challenge took me three days to solve. Because I was thinking the RSA key for the first part couldn't be cracked :DDD (yeah, it is RSA, bro), I overthought it so much. I spent a bunch of time just to find the key in the `.ad1` file ;)), that was very `not so smart`.
 
 Many thanks to Mr.KetSoSad for giving me a hint about checking the database of the Signal Chat App. I overlooked the app many times, thinking Signal was just a normal app (not a chat app, bruhh), until I became hopeless. Then Mr.KetSoSad appeared like God to give me a breakthrough hint that helped me solve this challenge.
+
 
